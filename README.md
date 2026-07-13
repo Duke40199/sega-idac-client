@@ -29,11 +29,9 @@ internal/
 ## Prerequisites
 
 - Go 1.25+
-- To regenerate protobuf code: `protoc`, plus the Go plugins:
-  ```sh
-  go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-  ```
+- To regenerate protobuf code: `protoc` (e.g. `brew install protobuf`). The Go
+  codegen plugins are installed automatically at pinned versions by
+  `make proto` (or run `make proto-tools` on its own).
 
 ## Setup
 

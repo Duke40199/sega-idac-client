@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: build / vet / test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+
+  proto-check:
+    name: generated stubs up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: arduino/setup-protoc@v3
+        with:
+          version: "27.x"
+      # Regenerates with `make proto` then fails if gen/ differs from what's
+      # committed — a proto change can't merge without regenerated code.
+      - run: make proto-check
+
+  buf:
+    name: buf lint + breaking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-action@v1
+        with:
+          # Lints the schema and, on pull requests, fails if the change is
+          # backward-incompatible versus the PR's base branch.
+          lint: true
+          breaking: true
+          # Compare against the default branch for breaking-change detection.
+          breaking_against: "https://github.com/${{ github.repository }}.git#branch=main"

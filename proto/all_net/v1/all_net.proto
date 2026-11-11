@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package all_net.v1;
+
+option go_package = "github.com/Duke40199/sega-idac-client/gen/allnetv1;allnetv1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// AllNetService exposes SEGA All.Net store-location data over gRPC and over
+// HTTP/JSON (via grpc-gateway). The upstream source is an HTML page that the
+// All.Net client scrapes; this service is a thin pass-through over that client.
+service AllNetService {
+  // GetListStore returns the IDAC arcade stores for a given game/language/area,
+  // along with the human-readable area name parsed from the page.
+  rpc GetListStore(GetListStoreRequest) returns (GetListStoreResponse) {
+    option (google.api.http) = {get: "/v1/stores"};
+  }
+}
+
+message StoreLocation {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string sega_area_code = 4;
+  string all_net_area_code = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message GetListStoreRequest {
+  string game_code = 1;
+  string language_code = 2;
+  string area_code = 3;
+}
+
+message GetListStoreResponse {
+  repeated StoreLocation stores = 1;
+  // area_name is the display name of the queried area, parsed from the page.
+  string area_name = 2;
+}

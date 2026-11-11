@@ -1,0 +1,18 @@
+version: v2
+modules:
+  - path: proto
+  # Vendored google/api/*.proto (grpc-gateway annotations). Included so imports
+  # resolve offline; lint/breaking disabled since it is third-party.
+  - path: third_party/googleapis
+    lint:
+      ignore:
+        - third_party/googleapis/google
+    breaking:
+      ignore:
+        - third_party/googleapis/google
+lint:
+  use:
+    - STANDARD
+breaking:
+  use:
+    - FILE

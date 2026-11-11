@@ -7,9 +7,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	"sega_idac_client/internal/adapter/grpc/health"
-	healthv1 "sega_idac_client/internal/adapter/grpc/gen/healthv1"
-	"sega_idac_client/internal/config"
+	allnetv1 "github.com/Duke40199/sega-idac-client/gen/allnetv1"
+	healthv1 "github.com/Duke40199/sega-idac-client/gen/healthv1"
+	segaidacv1 "github.com/Duke40199/sega-idac-client/gen/segaidacv1"
+	allnet "github.com/Duke40199/sega-idac-client/internal/adapter/grpc/all_net"
+	"github.com/Duke40199/sega-idac-client/internal/adapter/grpc/health"
+	segaidac "github.com/Duke40199/sega-idac-client/internal/adapter/grpc/sega_idac"
+	"github.com/Duke40199/sega-idac-client/internal/config"
+	"github.com/Duke40199/sega-idac-client/internal/domain/port"
 )
 
 // Server wraps the gRPC server together with the listener address so it can be
@@ -20,11 +25,13 @@ type Server struct {
 }
 
 // NewServer builds a gRPC server and registers all service handlers on it.
-func NewServer(cfg config.Config) *Server {
+func NewServer(cfg config.Config, segaClient port.SegaIDACClient, allNetClient port.AllNetClient) *Server {
 	grpcServer := grpc.NewServer()
 
 	// Register endpoints.
 	healthv1.RegisterHealthServiceServer(grpcServer, health.NewHandler())
+	segaidacv1.RegisterSegaIDACServiceServer(grpcServer, segaidac.NewHandler(segaClient))
+	allnetv1.RegisterAllNetServiceServer(grpcServer, allnet.NewHandler(allNetClient))
 
 	// Enable server reflection so tools like grpcurl can introspect the service.
 	reflection.Register(grpcServer)

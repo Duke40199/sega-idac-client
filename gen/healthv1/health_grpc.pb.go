@@ -26,8 +26,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// HealthService exposes liveness/readiness information for the sega_idac_client
-// service so that callers and orchestrators can probe it over gRPC.
+// HealthService exposes liveness/readiness information for the sega-idac-client
+// service so that callers and orchestrators can probe it over gRPC (and over
+// HTTP via grpc-gateway).
 type HealthServiceClient interface {
 	// Check returns the current serving status of the service.
 	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error)
@@ -55,8 +56,9 @@ func (c *healthServiceClient) Check(ctx context.Context, in *CheckRequest, opts 
 // All implementations must embed UnimplementedHealthServiceServer
 // for forward compatibility.
 //
-// HealthService exposes liveness/readiness information for the sega_idac_client
-// service so that callers and orchestrators can probe it over gRPC.
+// HealthService exposes liveness/readiness information for the sega-idac-client
+// service so that callers and orchestrators can probe it over gRPC (and over
+// HTTP via grpc-gateway).
 type HealthServiceServer interface {
 	// Check returns the current serving status of the service.
 	Check(context.Context, *CheckRequest) (*CheckResponse, error)

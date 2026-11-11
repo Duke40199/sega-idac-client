@@ -11,12 +11,16 @@ import (
 // Config is the read-only view of application configuration consumed by adapters.
 type Config interface {
 	GetGRPCCfg() GRPCConfig
+	GetHTTPCfg() HTTPConfig
 	GetSegaClientCfg() SegaClientConfig
 	GetAllNetClientCfg() AllNetClientConfig
 }
 
 func (c *AppConfig) GetGRPCCfg() GRPCConfig {
 	return c.GRPCCfg
+}
+func (c *AppConfig) GetHTTPCfg() HTTPConfig {
+	return c.HTTPCfg
 }
 func (c *AppConfig) GetSegaClientCfg() SegaClientConfig {
 	return c.SegaClientCfg
@@ -28,6 +32,7 @@ func (c *AppConfig) GetAllNetClientCfg() AllNetClientConfig {
 // AppConfig holds all configuration
 type AppConfig struct {
 	GRPCCfg            GRPCConfig
+	HTTPCfg            HTTPConfig
 	SegaClientCfg      SegaClientConfig
 	AllNetClientConfig AllNetClientConfig
 }
@@ -40,6 +45,37 @@ type GRPCConfig struct {
 // Addr returns the host:port the gRPC server should listen on.
 func (c GRPCConfig) Addr() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+}
+
+// DialAddr returns the host:port the HTTP gateway should dial to reach the gRPC
+// server in-process. A 0.0.0.0 listen host is rewritten to 127.0.0.1 so the
+// loopback dial works.
+func (c GRPCConfig) DialAddr() string {
+	host := c.Host
+	if host == "" || host == "0.0.0.0" {
+		host = "127.0.0.1"
+	}
+	return fmt.Sprintf("%s:%d", host, c.Port)
+}
+
+// HTTPConfig is the grpc-gateway (REST/JSON) listener.
+type HTTPConfig struct {
+	Host string
+	Port int
+	// TLSCertFile / TLSKeyFile enable HTTPS when both are set; otherwise the
+	// gateway serves plain HTTP.
+	TLSCertFile string
+	TLSKeyFile  string
+}
+
+// Addr returns the host:port the HTTP gateway should listen on.
+func (c HTTPConfig) Addr() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+}
+
+// TLSEnabled reports whether both a certificate and key were configured.
+func (c HTTPConfig) TLSEnabled() bool {
+	return c.TLSCertFile != "" && c.TLSKeyFile != ""
 }
 
 type SegaClientConfig struct {
@@ -88,6 +124,12 @@ func LoadConfig() (*AppConfig, error) {
 		GRPCCfg: GRPCConfig{
 			Host: getEnv("GRPC_HOST", "0.0.0.0"),
 			Port: getEnvAsInt("GRPC_PORT", 50051),
+		},
+		HTTPCfg: HTTPConfig{
+			Host:        getEnv("HTTP_HOST", "0.0.0.0"),
+			Port:        getEnvAsInt("HTTP_PORT", 8080),
+			TLSCertFile: getEnv("HTTP_TLS_CERT", ""),
+			TLSKeyFile:  getEnv("HTTP_TLS_KEY", ""),
 		},
 		SegaClientCfg: SegaClientConfig{
 			SegaIDACHost:              getEnv("SEGA_IDAC_HOST", ""),

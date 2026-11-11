@@ -41,6 +41,11 @@ jobs:
   buf:
     name: buf lint + breaking
     runs-on: ubuntu-latest
+    # buf-action posts its lint/breaking summary as a PR comment, which needs
+    # write access to pull requests (the repo-wide default is read-only).
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: bufbuild/buf-action@v1

@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package all_net.v1;
 
-option go_package = "github.com/Duke40199/sega-idac-client/gen/allnetv1;allnetv1";
-
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Duke40199/sega-idac-client/gen/allnetv1;allnetv1";
 
 // AllNetService exposes SEGA All.Net store-location data over gRPC and over
 // HTTP/JSON (via grpc-gateway). The upstream source is an HTML page that the

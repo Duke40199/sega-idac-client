@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package sega_idac.v1;
 
-option go_package = "github.com/Duke40199/sega-idac-client/gen/segaidacv1;segaidacv1";
-
 import "google/api/annotations.proto";
+
+option go_package = "github.com/Duke40199/sega-idac-client/gen/segaidacv1;segaidacv1";
 
 service SegaIDACService {
   // GetListTimeTrail returns the time-attack leaderboard for a course/area/car.

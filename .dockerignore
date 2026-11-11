@@ -1,0 +1,9 @@
+# Keep the build context small; the final image is just the static binary anyway.
+.git
+.github
+docs
+certs
+*.md
+LICENSE
+.env
+.env.example

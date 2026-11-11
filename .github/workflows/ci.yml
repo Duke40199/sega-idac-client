@@ -63,4 +63,4 @@ jobs:
           #   breaking: true
           #   breaking_against: "https://github.com/${{ github.repository }}.git#branch=main"
           # and breaking-change detection works for every subsequent PR.
-          breaking: false
+          breaking: true

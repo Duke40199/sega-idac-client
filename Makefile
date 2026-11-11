@@ -31,6 +31,12 @@ proto: proto-tools
 		--grpc-gateway_out=. --grpc-gateway_opt=module=$(MODULE) \
 		--openapiv2_out=$(OPENAPI_DIR) --openapiv2_opt=allow_merge=true,merge_file_name=sega-idac-client \
 		$(PROTO_FILES)
+	# Strip the embedded protoc COMPILER version line from generated headers so the
+	# checked-in code is reproducible across protoc versions (otherwise CI's protoc
+	# differs from a dev's and proto-check sees a spurious 1-line diff). The pinned
+	# protoc-gen-go/go-grpc plugin version lines are kept. perl -i is portable across
+	# macOS (BSD) and Linux (GNU), unlike `sed -i`.
+	@find gen -name '*.pb.go' -print0 | xargs -0 perl -i -ne 'print unless m{^//[\s-]*protoc\s+v\d}'
 	@echo "✅ Generated Go code + gateway for: $(PROTO_FILES)"
 
 ## Fail if the committed stubs under gen/ are stale vs the .proto files.

@@ -67,4 +67,11 @@ protoc \
   --openapiv2_out="${OPENAPI_DIR}" --openapiv2_opt=allow_merge=true,merge_file_name=sega-idac-client \
   "${PROTO_FILES[@]}"
 
+# Strip the embedded protoc COMPILER version line so the checked-in code is
+# reproducible across protoc versions (CI's protoc differs from a dev's, which
+# would otherwise make proto-check see a spurious 1-line diff). Pinned
+# protoc-gen-go/go-grpc plugin version lines are kept. perl -i is portable
+# across macOS (BSD) and Linux (GNU), unlike `sed -i`.
+find gen -name '*.pb.go' -print0 | xargs -0 perl -i -ne 'print unless m{^//[\s-]*protoc\s+v\d}'
+
 echo "✅ Done. Generated stubs + gateway for ${#PROTO_FILES[@]} file(s); OpenAPI in ${OPENAPI_DIR}/."

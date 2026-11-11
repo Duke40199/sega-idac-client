@@ -39,7 +39,7 @@ jobs:
       - run: make proto-check
 
   buf:
-    name: buf lint + breaking
+    name: buf lint + format
     runs-on: ubuntu-latest
     # buf-action posts its lint/breaking summary as a PR comment, which needs
     # write access to pull requests (the repo-wide default is read-only).
@@ -50,9 +50,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: bufbuild/buf-action@v1
         with:
-          # Lints the schema and, on pull requests, fails if the change is
-          # backward-incompatible versus the PR's base branch.
           lint: true
-          breaking: true
-          # Compare against the default branch for breaking-change detection.
-          breaking_against: "https://github.com/${{ github.repository }}.git#branch=main"
+          format: true
+          # BOOTSTRAP: breaking is OFF until `main` carries buf.yaml + the proto
+          # layout. On this first schema PR, main has no buf.yaml, so its protos
+          # resolve from the repo root (proto/health/v1/health.proto) while this
+          # branch's `path: proto` module strips that prefix (health/v1/...) —
+          # buf then reports every file as "deleted". There is no valid baseline
+          # to compare against yet.
+          #
+          # AFTER this PR merges (main now has buf.yaml), flip this to:
+          #   breaking: true
+          #   breaking_against: "https://github.com/${{ github.repository }}.git#branch=main"
+          # and breaking-change detection works for every subsequent PR.
+          breaking: false

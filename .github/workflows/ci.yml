@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: build / vet / test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+
+  proto-check:
+    name: generated stubs up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: arduino/setup-protoc@v3
+        with:
+          version: "27.x"
+      # Regenerates with `make proto` then fails if gen/ differs from what's
+      # committed — a proto change can't merge without regenerated code.
+      - run: make proto-check
+
+  buf:
+    name: buf lint + format
+    runs-on: ubuntu-latest
+    # buf-action posts its lint/breaking summary as a PR comment, which needs
+    # write access to pull requests (the repo-wide default is read-only).
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-action@v1
+        with:
+          lint: true
+          format: true
+          # BOOTSTRAP: breaking is OFF until `main` carries buf.yaml + the proto
+          # layout. On this first schema PR, main has no buf.yaml, so its protos
+          # resolve from the repo root (proto/health/v1/health.proto) while this
+          # branch's `path: proto` module strips that prefix (health/v1/...) —
+          # buf then reports every file as "deleted". There is no valid baseline
+          # to compare against yet.
+          #
+          # AFTER this PR merges (main now has buf.yaml), flip this to:
+          #   breaking: true
+          #   breaking_against: "https://github.com/${{ github.repository }}.git#branch=main"
+          # and breaking-change detection works for every subsequent PR.
+          breaking: false

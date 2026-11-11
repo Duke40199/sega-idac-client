@@ -1,58 +1,77 @@
 package sega_idac
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
-	"sega_idac_client/internal/config"
-	"sega_idac_client/internal/domain/entity"
-	"sega_idac_client/internal/domain/port"
+	"github.com/Duke40199/sega-idac-client/internal/config"
+	"github.com/Duke40199/sega-idac-client/internal/domain/entity"
+	"github.com/Duke40199/sega-idac-client/internal/domain/port"
 )
 
+// segaHTTPTimeout bounds every Sega request so a stalled endpoint can't hang a
+// gRPC handler or sync goroutine indefinitely. A caller-supplied ctx with an
+// earlier deadline still wins.
+const segaHTTPTimeout = 15 * time.Second
+
 type SegaIDACClient struct {
-	config config.Config
+	config     config.Config
+	httpClient *http.Client
 }
 
 func NewSegaIDACClient(cfg config.Config) port.SegaIDACClient {
 	return &SegaIDACClient{
-		config: cfg,
+		config:     cfg,
+		httpClient: &http.Client{Timeout: segaHTTPTimeout},
 	}
 }
 
-// GetTimeAttack
-func (c *SegaIDACClient) GetListTimeTrail(courseID, areaCode, carID, spec string) ([]entity.TimeAttackRecord, error) {
+// makeHTTPRequest performs a GET against url honoring ctx and decodes a JSON body into out.
+func (c *SegaIDACClient) makeHTTPRequest(ctx context.Context, url string, out any) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("creating request: %w", err)
+	}
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("status code %d", resp.StatusCode)
+	}
+	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		return fmt.Errorf("decoding response: %w", err)
+	}
+	return nil
+}
+
+// GetListTimeTrail returns the time-attack leaderboard for a course/area/car.
+func (c *SegaIDACClient) GetListTimeTrail(ctx context.Context, courseID, areaCode, carID, spec string) ([]entity.TimeAttackRecord, error) {
 	// 1. Build URL
 	url := c.config.GetSegaClientCfg().SegaIDACHost + c.config.GetSegaClientCfg().GetTimeTrailURLPath
 	url = strings.Replace(url, ":courseID", courseID, 1)
 	url = strings.Replace(url, ":areaCode", areaCode, 1)
 	url = strings.Replace(url, ":carID", carID, 1)
-	fmt.Printf("=== SegaIDACClient: GetListTimeTrailResults full path: %s\n", url)
-	// 2. Make request
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("=== SegaIDACClient: GetListTimeTrailResults: status code %d", resp.StatusCode)
-	}
-	// 3. Parse response
+	// 2. Fetch + parse
 	var data entity.IdacTimeAttackRecordResponse
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		fmt.Printf("=== SegaIDACClient: GetListTimeTrailResults: cannot parse res %d, err %s\n", resp.StatusCode, err.Error())
-		return nil, err
+	if err := c.makeHTTPRequest(ctx, url, &data); err != nil {
+		return nil, fmt.Errorf("GetListTimeTrail: %w", err)
 	}
 	return data.Records, nil
 }
 
-func (c *SegaIDACClient) GetOBRankingByIGN(ign, roundNum, areaCode string) (*entity.OBRankingRecord, error) {
+// GetOBRankingByIGN returns the online-battle ranking record matching an in-game name.
+func (c *SegaIDACClient) GetOBRankingByIGN(ctx context.Context, ign, roundNum, areaCode string) (*entity.OBRankingRecord, error) {
 	normalizedIGN := entity.NormalizeTextWidth(ign)
-	listOBRankings, err := c.GetListOBRanking(roundNum, areaCode)
+	listOBRankings, err := c.GetListOBRanking(ctx, roundNum, areaCode)
 	if err != nil {
 		return nil, err
 	}
@@ -67,51 +86,30 @@ func (c *SegaIDACClient) GetOBRankingByIGN(ign, roundNum, areaCode string) (*ent
 	return nil, nil
 }
 
-func (c *SegaIDACClient) GetListOBRanking(roundNum string, areaCode string) (*entity.IdacOBRankingResponse, error) {
+// GetListOBRanking returns the full online-battle ranking for a round/area.
+func (c *SegaIDACClient) GetListOBRanking(ctx context.Context, roundNum, areaCode string) (*entity.IdacOBRankingResponse, error) {
 	// 1. Build URL
 	url := c.config.GetSegaClientCfg().SegaIDACHost + c.config.GetSegaClientCfg().GetListOBRankingURLPath
 	url = strings.Replace(url, ":roundNum", roundNum, 1)
 	url = strings.Replace(url, ":areaCode", areaCode, 1)
-	fmt.Printf("=== SegaIDACClient.GetListOBRanking full URL: %s\n", url)
-	// 2. Make request
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("status code %d", resp.StatusCode)
-	}
-	// 3. Parse response
+	// 2. Fetch + parse
 	var data entity.IdacOBRankingResponse
-	if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, err
+	if err := c.makeHTTPRequest(ctx, url, &data); err != nil {
+		return nil, fmt.Errorf("GetListOBRanking: %w", err)
 	}
 	return &data, nil
 }
 
-// GetTeamRanking
-func (c *SegaIDACClient) GetTeamRanking(roundNum int, rankCode string) ([]entity.TeamRecord, error) {
+// GetTeamRanking returns the team leaderboard for a round, tagged with league emojis.
+func (c *SegaIDACClient) GetTeamRanking(ctx context.Context, roundNum int, rankCode string) ([]entity.TeamRecord, error) {
 	// 1. Build URL
 	url := c.config.GetSegaClientCfg().SegaIDACHost + c.config.GetSegaClientCfg().GetTeamRankingUrlPath
 	url = strings.Replace(url, ":roundCount", strconv.Itoa(roundNum), 1)
 	url = strings.Replace(url, ":rankType", rankCode, 1)
-	fmt.Printf("=== SegaIDACClient: GetTeamRanking full path: %s\n", url)
-	// 2. Make request
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("=== SegaIDACClient: GetTeamRanking: status code %d", resp.StatusCode)
-	}
-	// 3. Parse response
+	// 2. Fetch + parse
 	var data entity.IdacTeamRankingResponse
-	if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		fmt.Printf("=== SegaIDACClient: GetTeamRanking: cannot parse res %d, err %s\n", resp.StatusCode, err.Error())
-		return nil, err
+	if err := c.makeHTTPRequest(ctx, url, &data); err != nil {
+		return nil, fmt.Errorf("GetTeamRanking: %w", err)
 	}
 	foundTeams := make([]entity.TeamRecord, 0)
 	// set league emoji values for each team
@@ -122,55 +120,54 @@ func (c *SegaIDACClient) GetTeamRanking(roundNum int, rankCode string) ([]entity
 	return foundTeams, nil
 }
 
-func (c *SegaIDACClient) GetCurrentRound() (int, error) {
+// GetCurrentRound returns the currently active tournament round number.
+func (c *SegaIDACClient) GetCurrentRound(ctx context.Context) (int, error) {
 	url := c.config.GetSegaClientCfg().SegaIDACHost + c.config.GetSegaClientCfg().GetCurrentRoundUrlPath
-	respRound, err := http.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return -1, fmt.Errorf("creating request: %w", err)
+	}
+	respRound, err := c.httpClient.Do(req)
 	if err != nil {
 		return -1, err
 	}
 	defer respRound.Body.Close()
-	if respRound.StatusCode != 200 {
+	if respRound.StatusCode != http.StatusOK {
 		return -1, fmt.Errorf("sega api status: %d", respRound.StatusCode)
 	}
 	bodyBytes, err := io.ReadAll(respRound.Body)
 	if err != nil {
-		return -1, fmt.Errorf("error while reading response: %d", err)
+		return -1, fmt.Errorf("error while reading response: %w", err)
 	}
 
 	roundStr := strings.TrimSpace(string(bodyBytes))
-	roundNum, _ := strconv.Atoi(roundStr)
+	roundNum, err := strconv.Atoi(roundStr)
+	if err != nil {
+		return -1, fmt.Errorf("parsing round number %q: %w", roundStr, err)
+	}
 	return roundNum, nil
 }
 
-func (c *SegaIDACClient) GetListPlayerGrade(areaCode string) (*entity.IdacPlayerRankingResponse, error) {
+// GetListPlayerGrade returns the player-grade ranking for an area.
+func (c *SegaIDACClient) GetListPlayerGrade(ctx context.Context, areaCode string) (*entity.IdacPlayerRankingResponse, error) {
 	// 1. Build URL
 	url := c.config.GetSegaClientCfg().SegaIDACHost + c.config.GetSegaClientCfg().GetListPlayerGradeUrlPath
 	url = strings.Replace(url, ":areaCode", areaCode, 1)
-	fmt.Printf("=== SegaIDACClient.GetListPlayerGrade url: %s\n", url)
-	// 2. Make request
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("status code %d", resp.StatusCode)
-	}
-	// 3. Parse response
+	// 2. Fetch + parse
 	var data entity.IdacPlayerRankingResponse
-	if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, err
+	if err := c.makeHTTPRequest(ctx, url, &data); err != nil {
+		return nil, fmt.Errorf("GetListPlayerGrade: %w", err)
 	}
 	return &data, nil
 }
 
-func (c *SegaIDACClient) GetPlayerGradeByIGN(ign, areaCode string) (*entity.PlayerRankingRecord, error) {
-	listAreaGrade, err := c.GetListPlayerGrade(areaCode)
-	normalizedIgn := entity.NormalizeTextWidth(ign)
+// GetPlayerGradeByIGN returns the player-grade record matching an in-game name.
+func (c *SegaIDACClient) GetPlayerGradeByIGN(ctx context.Context, ign, areaCode string) (*entity.PlayerRankingRecord, error) {
+	listAreaGrade, err := c.GetListPlayerGrade(ctx, areaCode)
 	if err != nil {
 		return nil, err
 	}
+	normalizedIgn := entity.NormalizeTextWidth(ign)
 	if len(listAreaGrade.Records) == 0 {
 		return nil, nil
 	}
@@ -183,22 +180,12 @@ func (c *SegaIDACClient) GetPlayerGradeByIGN(ign, areaCode string) (*entity.Play
 	return nil, nil
 }
 
-func (c *SegaIDACClient) FetchConst() (*entity.IdacConstResponse, error) {
+// FetchConst returns the IDAC car/style constant metadata.
+func (c *SegaIDACClient) FetchConst(ctx context.Context) (*entity.IdacConstResponse, error) {
 	url := c.config.GetSegaClientCfg().SegaIDACHost + c.config.GetSegaClientCfg().GetListConstConfigURLPath
-	fmt.Printf("=== SegaIDACClient: FetchConst %s\n", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("status code %d", resp.StatusCode)
-	}
-
 	var data entity.IdacConstResponse
-	if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, err
+	if err := c.makeHTTPRequest(ctx, url, &data); err != nil {
+		return nil, fmt.Errorf("FetchConst: %w", err)
 	}
 	return &data, nil
 }

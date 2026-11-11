@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package sega_idac.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/Duke40199/sega-idac-client/gen/segaidacv1;segaidacv1";
+
+service SegaIDACService {
+  // GetListTimeTrail returns the time-attack leaderboard for a course/area/car.
+  rpc GetListTimeTrail(GetListTimeTrailRequest) returns (GetListTimeTrailResponse) {
+    option (google.api.http) = {get: "/v1/time-trail"};
+  }
+  // GetTeamRanking returns the team leaderboard for a given round.
+  rpc GetTeamRanking(GetTeamRankingRequest) returns (GetTeamRankingResponse) {
+    option (google.api.http) = {get: "/v1/team-ranking"};
+  }
+  // GetListOBRanking returns the online-battle ranking for a round/area.
+  rpc GetListOBRanking(GetListOBRankingRequest) returns (GetListOBRankingResponse) {
+    option (google.api.http) = {get: "/v1/ob-ranking"};
+  }
+  // GetOBRankingByIGN returns the online-battle record for a single in-game name.
+  rpc GetOBRankingByIGN(GetOBRankingByIGNRequest) returns (GetOBRankingByIGNResponse) {
+    option (google.api.http) = {get: "/v1/ob-ranking/by-ign"};
+  }
+  // GetCurrentRound returns the currently active tournament round number.
+  rpc GetCurrentRound(GetCurrentRoundRequest) returns (GetCurrentRoundResponse) {
+    option (google.api.http) = {get: "/v1/current-round"};
+  }
+  // FetchConst returns the IDAC car/style constant metadata.
+  rpc FetchConst(FetchConstRequest) returns (FetchConstResponse) {
+    option (google.api.http) = {get: "/v1/const"};
+  }
+  // GetListPlayerGrade returns the player-grade ranking for an area.
+  rpc GetListPlayerGrade(GetListPlayerGradeRequest) returns (GetListPlayerGradeResponse) {
+    option (google.api.http) = {get: "/v1/player-grade"};
+  }
+  // GetPlayerGradeByIGN returns the player-grade record for a single in-game name.
+  rpc GetPlayerGradeByIGN(GetPlayerGradeByIGNRequest) returns (GetPlayerGradeByIGNResponse) {
+    option (google.api.http) = {get: "/v1/player-grade/by-ign"};
+  }
+}
+
+// ----- Domain records (mirror internal/domain/entity) -----
+
+message TimeAttackRecord {
+  string rank = 1;
+  string name = 2;
+  string shop_name = 3;
+  string record = 4;
+  string car_name = 5;
+  string my_title_id = 6;
+  string update_date = 7;
+}
+
+message TeamRecord {
+  string rank = 1;
+  string team_name = 2;
+  string shop_name = 3;
+  int32 country = 4;
+  string ace_user_name = 5;
+  string leader_user_name = 6;
+  string point = 7;
+  string league_emoji = 8;
+}
+
+message OBRankingRecord {
+  string rank = 1;
+  string name = 2;
+  string shop_name = 3;
+  string update_date = 4;
+  string car_name = 5;
+  string point = 6;
+  string pride_id = 7;
+  int32 pride_point = 8;
+  string online_battle_rank_id = 9;
+  int32 star_cnt = 10;
+}
+
+message PlayerRankingRecord {
+  int32 id = 1;
+  int32 rank = 2;
+  string name = 3;
+  string shop_name = 4;
+  string grade_id = 5;
+  int32 grade_exp = 6;
+  string my_title_id = 7;
+  string update_date = 8;
+  string number_icon = 9;
+}
+
+message CarMetadata {
+  string id = 1;
+  int64 sega_car_id = 2;
+  string name = 3;
+  string model_code = 4;
+  string maker = 5;
+  string base_style_name = 6;
+  string normalized_base_style = 7;
+  repeated int64 car_style_ids = 8;
+  repeated string spec_ids = 9;
+  repeated string spec_names = 10;
+}
+
+message CarStyleMetadata {
+  string id = 1;
+  int64 style_car_id = 2;
+  string car_id = 3;
+  string name = 4;
+  string route_style_name = 5;
+}
+
+// ----- Requests / Responses -----
+
+message GetListTimeTrailRequest {
+  string course_id = 1;
+  string area_code = 2;
+  string car_id = 3;
+  string spec = 4;
+}
+message GetListTimeTrailResponse {
+  repeated TimeAttackRecord records = 1;
+}
+
+message GetTeamRankingRequest {
+  int32 round_num = 1;
+  string rank_code = 2;
+}
+message GetTeamRankingResponse {
+  repeated TeamRecord records = 1;
+}
+
+message GetListOBRankingRequest {
+  string round_num = 1;
+  string area_code = 2;
+}
+message GetListOBRankingResponse {
+  string calc_date = 1;
+  repeated OBRankingRecord records = 2;
+}
+
+message GetOBRankingByIGNRequest {
+  string ign = 1;
+  string round_num = 2;
+  string area_code = 3;
+}
+message GetOBRankingByIGNResponse {
+  // found is false when no record matches the supplied in-game name.
+  bool found = 1;
+  OBRankingRecord record = 2;
+}
+
+message GetCurrentRoundRequest {}
+message GetCurrentRoundResponse {
+  int32 round = 1;
+}
+
+message FetchConstRequest {}
+message FetchConstResponse {
+  repeated CarMetadata cars = 1;
+  repeated CarStyleMetadata styles = 2;
+}
+
+message GetListPlayerGradeRequest {
+  string area_code = 1;
+}
+message GetListPlayerGradeResponse {
+  string calc_date = 1;
+  repeated PlayerRankingRecord records = 2;
+}
+
+message GetPlayerGradeByIGNRequest {
+  string ign = 1;
+  string area_code = 2;
+}
+message GetPlayerGradeByIGNResponse {
+  // found is false when no record matches the supplied in-game name.
+  bool found = 1;
+  PlayerRankingRecord record = 2;
+}

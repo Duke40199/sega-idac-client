@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
-	healthv1 "sega_idac_client/internal/adapter/grpc/gen/healthv1"
-	"sega_idac_client/internal/adapter/grpc/health"
+	healthv1 "github.com/Duke40199/sega-idac-client/gen/healthv1"
+	"github.com/Duke40199/sega-idac-client/internal/adapter/grpc/health"
 )
 
 // TestHealthCheck spins up the Health service over an in-memory gRPC connection

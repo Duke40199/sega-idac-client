@@ -1,10 +1,12 @@
-module sega_idac_client
+module github.com/Duke40199/sega-idac-client
 
 go 1.25.0
 
 require (
 	github.com/PuerkitoBio/goquery v1.12.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
 	github.com/joho/godotenv v1.5.1
+	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1
 	google.golang.org/grpc v1.68.1
 	google.golang.org/protobuf v1.35.2
 )

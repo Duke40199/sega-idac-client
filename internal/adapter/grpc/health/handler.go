@@ -3,7 +3,7 @@ package health
 import (
 	"context"
 
-	healthv1 "sega_idac_client/internal/adapter/grpc/gen/healthv1"
+	healthv1 "github.com/Duke40199/sega-idac-client/gen/healthv1"
 )
 
 // Handler implements the HealthService gRPC endpoint.

@@ -1,0 +1,774 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "proto/health/v1/health.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "HealthService"
+    },
+    {
+      "name": "SegaIDACService"
+    },
+    {
+      "name": "AllNetService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/const": {
+      "get": {
+        "summary": "FetchConst returns the IDAC car/style constant metadata.",
+        "operationId": "SegaIDACService_FetchConst",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FetchConstResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "SegaIDACService"
+        ]
+      }
+    },
+    "/v1/current-round": {
+      "get": {
+        "summary": "GetCurrentRound returns the currently active tournament round number.",
+        "operationId": "SegaIDACService_GetCurrentRound",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetCurrentRoundResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "SegaIDACService"
+        ]
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "summary": "Check returns the current serving status of the service.",
+        "operationId": "HealthService_Check",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CheckResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "service",
+            "description": "Optional logical sub-service name to probe. Empty means the whole server.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "HealthService"
+        ]
+      }
+    },
+    "/v1/ob-ranking": {
+      "get": {
+        "summary": "GetListOBRanking returns the online-battle ranking for a round/area.",
+        "operationId": "SegaIDACService_GetListOBRanking",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetListOBRankingResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "roundNum",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "areaCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SegaIDACService"
+        ]
+      }
+    },
+    "/v1/ob-ranking/by-ign": {
+      "get": {
+        "summary": "GetOBRankingByIGN returns the online-battle record for a single in-game name.",
+        "operationId": "SegaIDACService_GetOBRankingByIGN",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetOBRankingByIGNResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ign",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "roundNum",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "areaCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SegaIDACService"
+        ]
+      }
+    },
+    "/v1/player-grade": {
+      "get": {
+        "summary": "GetListPlayerGrade returns the player-grade ranking for an area.",
+        "operationId": "SegaIDACService_GetListPlayerGrade",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetListPlayerGradeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "areaCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SegaIDACService"
+        ]
+      }
+    },
+    "/v1/player-grade/by-ign": {
+      "get": {
+        "summary": "GetPlayerGradeByIGN returns the player-grade record for a single in-game name.",
+        "operationId": "SegaIDACService_GetPlayerGradeByIGN",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPlayerGradeByIGNResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ign",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "areaCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SegaIDACService"
+        ]
+      }
+    },
+    "/v1/stores": {
+      "get": {
+        "summary": "GetListStore returns the IDAC arcade stores for a given game/language/area,\nalong with the human-readable area name parsed from the page.",
+        "operationId": "AllNetService_GetListStore",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetListStoreResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gameCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "languageCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "areaCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AllNetService"
+        ]
+      }
+    },
+    "/v1/team-ranking": {
+      "get": {
+        "summary": "GetTeamRanking returns the team leaderboard for a given round.",
+        "operationId": "SegaIDACService_GetTeamRanking",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTeamRankingResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "roundNum",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "rankCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SegaIDACService"
+        ]
+      }
+    },
+    "/v1/time-trail": {
+      "get": {
+        "summary": "GetListTimeTrail returns the time-attack leaderboard for a course/area/car.",
+        "operationId": "SegaIDACService_GetListTimeTrail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetListTimeTrailResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "areaCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "carId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "spec",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SegaIDACService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "CheckResponseServingStatus": {
+      "type": "string",
+      "enum": [
+        "SERVING_STATUS_UNKNOWN_UNSPECIFIED",
+        "SERVING_STATUS_SERVING",
+        "SERVING_STATUS_NOT_SERVING"
+      ],
+      "default": "SERVING_STATUS_UNKNOWN_UNSPECIFIED"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1CarMetadata": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "segaCarId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "modelCode": {
+          "type": "string"
+        },
+        "maker": {
+          "type": "string"
+        },
+        "baseStyleName": {
+          "type": "string"
+        },
+        "normalizedBaseStyle": {
+          "type": "string"
+        },
+        "carStyleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "specIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "specNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1CarStyleMetadata": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "styleCarId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "carId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "routeStyleName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CheckResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/CheckResponseServingStatus"
+        }
+      }
+    },
+    "v1FetchConstResponse": {
+      "type": "object",
+      "properties": {
+        "cars": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CarMetadata"
+          }
+        },
+        "styles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CarStyleMetadata"
+          }
+        }
+      }
+    },
+    "v1GetCurrentRoundResponse": {
+      "type": "object",
+      "properties": {
+        "round": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1GetListOBRankingResponse": {
+      "type": "object",
+      "properties": {
+        "calcDate": {
+          "type": "string"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1OBRankingRecord"
+          }
+        }
+      }
+    },
+    "v1GetListPlayerGradeResponse": {
+      "type": "object",
+      "properties": {
+        "calcDate": {
+          "type": "string"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PlayerRankingRecord"
+          }
+        }
+      }
+    },
+    "v1GetListStoreResponse": {
+      "type": "object",
+      "properties": {
+        "stores": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1StoreLocation"
+          }
+        },
+        "areaName": {
+          "type": "string",
+          "description": "area_name is the display name of the queried area, parsed from the page."
+        }
+      }
+    },
+    "v1GetListTimeTrailResponse": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TimeAttackRecord"
+          }
+        }
+      }
+    },
+    "v1GetOBRankingByIGNResponse": {
+      "type": "object",
+      "properties": {
+        "found": {
+          "type": "boolean",
+          "description": "found is false when no record matches the supplied in-game name."
+        },
+        "record": {
+          "$ref": "#/definitions/v1OBRankingRecord"
+        }
+      }
+    },
+    "v1GetPlayerGradeByIGNResponse": {
+      "type": "object",
+      "properties": {
+        "found": {
+          "type": "boolean",
+          "description": "found is false when no record matches the supplied in-game name."
+        },
+        "record": {
+          "$ref": "#/definitions/v1PlayerRankingRecord"
+        }
+      }
+    },
+    "v1GetTeamRankingResponse": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TeamRecord"
+          }
+        }
+      }
+    },
+    "v1OBRankingRecord": {
+      "type": "object",
+      "properties": {
+        "rank": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "shopName": {
+          "type": "string"
+        },
+        "updateDate": {
+          "type": "string"
+        },
+        "carName": {
+          "type": "string"
+        },
+        "point": {
+          "type": "string"
+        },
+        "prideId": {
+          "type": "string"
+        },
+        "pridePoint": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "onlineBattleRankId": {
+          "type": "string"
+        },
+        "starCnt": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1PlayerRankingRecord": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "rank": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "shopName": {
+          "type": "string"
+        },
+        "gradeId": {
+          "type": "string"
+        },
+        "gradeExp": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "myTitleId": {
+          "type": "string"
+        },
+        "updateDate": {
+          "type": "string"
+        },
+        "numberIcon": {
+          "type": "string"
+        }
+      }
+    },
+    "v1StoreLocation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "segaAreaCode": {
+          "type": "string"
+        },
+        "allNetAreaCode": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "v1TeamRecord": {
+      "type": "object",
+      "properties": {
+        "rank": {
+          "type": "string"
+        },
+        "teamName": {
+          "type": "string"
+        },
+        "shopName": {
+          "type": "string"
+        },
+        "country": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "aceUserName": {
+          "type": "string"
+        },
+        "leaderUserName": {
+          "type": "string"
+        },
+        "point": {
+          "type": "string"
+        },
+        "leagueEmoji": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TimeAttackRecord": {
+      "type": "object",
+      "properties": {
+        "rank": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "shopName": {
+          "type": "string"
+        },
+        "record": {
+          "type": "string"
+        },
+        "carName": {
+          "type": "string"
+        },
+        "myTitleId": {
+          "type": "string"
+        },
+        "updateDate": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

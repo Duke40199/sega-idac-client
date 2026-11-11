@@ -2,13 +2,18 @@ syntax = "proto3";
 
 package health.v1;
 
-option go_package = "sega_idac_client/internal/adapter/grpc/gen/healthv1;healthv1";
+import "google/api/annotations.proto";
 
-// HealthService exposes liveness/readiness information for the sega_idac_client
-// service so that callers and orchestrators can probe it over gRPC.
+option go_package = "github.com/Duke40199/sega-idac-client/gen/healthv1;healthv1";
+
+// HealthService exposes liveness/readiness information for the sega-idac-client
+// service so that callers and orchestrators can probe it over gRPC (and over
+// HTTP via grpc-gateway).
 service HealthService {
   // Check returns the current serving status of the service.
-  rpc Check(CheckRequest) returns (CheckResponse);
+  rpc Check(CheckRequest) returns (CheckResponse) {
+    option (google.api.http) = {get: "/v1/health"};
+  }
 }
 
 message CheckRequest {

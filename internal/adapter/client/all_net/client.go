@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"sega_idac_client/internal/config"
-	"sega_idac_client/internal/domain/entity"
-	"sega_idac_client/internal/domain/port"
+	"github.com/Duke40199/sega-idac-client/internal/config"
+	"github.com/Duke40199/sega-idac-client/internal/domain/entity"
+	"github.com/Duke40199/sega-idac-client/internal/domain/port"
 
 	"github.com/PuerkitoBio/goquery"
 )

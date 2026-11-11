@@ -1,0 +1,18 @@
+version: v2
+modules:
+  - path: proto
+# google/api/*.proto (grpc-gateway annotations) comes from the BSR, not a local
+# module — so buf has exactly ONE module (proto). This keeps `buf breaking`
+# comparing proto-vs-proto (a second local module made the image count differ
+# from main and broke the check), and keeps lint scoped to our own protos.
+# Run `buf dep update` after changing deps; commit the resulting buf.lock.
+# NOTE: protoc still uses the VENDORED copy under third_party/googleapis (see the
+# Makefile -I flag) — that is independent of buf.
+deps:
+  - buf.build/googleapis/googleapis
+lint:
+  use:
+    - STANDARD
+breaking:
+  use:
+    - FILE
